@@ -72,10 +72,10 @@ vertex main0_out main0(main0_in in [[stage_in]], uint gl_VertexIndex [[vertex_id
     int testVal1 = in.test.y;
     int expectedVal0;
     int expectedVal1;
-    expectedVal0 = expected[int(gl_VertexIndex)][0];
-    expectedVal1 = expected[int(gl_VertexIndex)][1];
+    //expectedVal0 = expected[int(gl_VertexIndex)][0];
+    //expectedVal1 = expected[int(gl_VertexIndex)][1];
     // This is the workaround that can make this shader works correctly on Intel Iris pro
-    /*if (gl_VertexIndex == 0) {
+    if (gl_VertexIndex == 0) {
         expectedVal0 = expected[0][0];
         expectedVal1 = expected[0][1];
     } else if (gl_VertexIndex == 1) {
@@ -84,7 +84,7 @@ vertex main0_out main0(main0_in in [[stage_in]], uint gl_VertexIndex [[vertex_id
     } else {
         expectedVal0 = expected[2][0];
         expectedVal1 = expected[2][1];
-    }*/
+    }
     success = success && (testVal0 == expectedVal0);
     success = success && (testVal1 == expectedVal1);
     if (success)
