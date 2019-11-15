@@ -24,7 +24,11 @@ Implementation of our cross-platform view controller
     
     NSArray<id<MTLDevice>>* devices = MTLCopyAllDevices();
     for (id<MTLDevice> device in devices) {
-        if (device.isLowPower) {
+        /*if (device.isLowPower) {
+            _view.device = device;
+        }*/
+        // Choose hign end GPU
+        if (!device.isRemovable && !device.isLowPower) {
             _view.device = device;
         }
     }
