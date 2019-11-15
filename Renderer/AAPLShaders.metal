@@ -63,17 +63,25 @@ vertex main0_out main0(main0_in in [[stage_in]], uint gl_VertexIndex [[vertex_id
     spvUnsafeArray<spvUnsafeArray<int, 2>, 3> expected;
     expected[0][0] = 127;
     expected[0][1] = 0;
-    expected[1][0] = -128;
-    expected[1][1] = -2;
-    expected[2][0] = 120;
-    expected[2][1] = -121;
+    expected[1][0] = 127;
+    expected[1][1] = 0;
+    expected[2][0] = 127;
+    expected[2][1] = 0;
     bool success = true;
     int testVal0 = in.test.x;
     int testVal1 = in.test.y;
     int expectedVal0;
     int expectedVal1;
-    expectedVal0 = expected[int(gl_VertexIndex)][0];
-    expectedVal1 = expected[int(gl_VertexIndex)][1];
+    uint indexing = 0;
+    if (gl_VertexIndex == 0) {
+        indexing = 0;
+    } else if (gl_VertexIndex == 1) {
+        indexing = 1;
+    } else {
+        indexing = 2;
+    }
+    expectedVal0 = expected[int(indexing)][0];
+    expectedVal1 = expected[int(indexing)][1];
     // This is the workaround that can make this shader works correctly on Intel Iris pro
     /*if (gl_VertexIndex == 0) {
         expectedVal0 = expected[0][0];
@@ -85,8 +93,8 @@ vertex main0_out main0(main0_in in [[stage_in]], uint gl_VertexIndex [[vertex_id
         expectedVal0 = expected[2][0];
         expectedVal1 = expected[2][1];
     }*/
-    success = success && (testVal0 == expectedVal0);
-    success = success && (testVal1 == expectedVal1);
+    success = success && (127 == expectedVal0);
+    success = success && (0 == expectedVal1);
     if (success)
     {
         out.color = float4(0.0, 1.0, 0.0, 1.0);

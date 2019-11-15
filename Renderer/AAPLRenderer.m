@@ -74,8 +74,8 @@ Implementation of a platform independent renderer class, which performs Metal se
     id<MTLFunction> fragmentFunction = [defaultLibrary newFunctionWithName:@"fragmentShader"];
     static const int vertex[] =
     {    127, 0, 0, 0,
-         -128, -2, 0, 0,
-        120, -121, 0, 0
+         127, 0, 0, 0,
+         127, 0, 0, 0
     };
     
     id<MTLBuffer> vertexBuffer = [_device newBufferWithBytes:vertex length:48 options:MTLResourceOptionCPUCacheModeDefault];
