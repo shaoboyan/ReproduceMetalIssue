@@ -1,21 +1,52 @@
-/*
-See LICENSE folder for this sample’s licensing information.
-
-Abstract:
-Metal shaders used for this sample
-*/
+#pragma clang diagnostic ignored "-Wmissing-prototypes"
+#pragma clang diagnostic ignored "-Wmissing-braces"
 
 #include <metal_stdlib>
 #include <simd/simd.h>
 
 using namespace metal;
 
-// Include header shared between this Metal shader code and C code executing Metal API commands.
-#import "AAPLShaderTypes.h"
+template<typename T, size_t Num>
+struct spvUnsafeArray
+{
+    T elements[Num ? Num : 1];
+    
+    thread T& operator [] (size_t pos) thread
+    {
+        return elements[pos];
+    }
+    constexpr const thread T& operator [] (size_t pos) const thread
+    {
+        return elements[pos];
+    }
+    
+    device T& operator [] (size_t pos) device
+    {
+        return elements[pos];
+    }
+    constexpr const device T& operator [] (size_t pos) const device
+    {
+        return elements[pos];
+    }
+    
+    constexpr const constant T& operator [] (size_t pos) const constant
+    {
+        return elements[pos];
+    }
+    
+    threadgroup T& operator [] (size_t pos) threadgroup
+    {
+        return elements[pos];
+    }
+    constexpr const threadgroup T& operator [] (size_t pos) const threadgroup
+    {
+        return elements[pos];
+    }
+};
 
-// Vertex shader outputs and fragment shader inputs
 typedef struct
 {
+    
     // The [[position]] attribute of this member indicates that this value
     // is the clip space position of the vertex when this structure is
     // returned from the vertex function.
@@ -30,28 +61,28 @@ typedef struct
 } RasterizerData;
 
 vertex RasterizerData
-vertexShader(uint vertexID [[vertex_id]],
-             constant AAPLVertex *vertices [[buffer(AAPLVertexInputIndexVertices)]],
-             constant vector_uint2 *viewportSizePointer [[buffer(AAPLVertexInputIndexViewportSize)]])
+vertexShader(uint vertexID [[vertex_id]])
 {
     RasterizerData out;
+    
+    spvUnsafeArray<spvUnsafeArray<float, 2>, 3> expected;
+    expected[0][0] = 0.0;
+    expected[0][1] = 0.5;
+    expected[1][0] = -0.5;
+    expected[1][1] = 0.0;
+    expected[2][0] = 0.5;
+    expected[2][1] = -0.5;
 
     // Index into the array of positions to get the current vertex.
     // The positions are specified in pixel dimensions (i.e. a value of 100
     // is 100 pixels from the origin).
-    float2 pixelSpacePosition = vertices[vertexID].position.xy;
-
-    // Get the viewport size and cast to float.
-    vector_float2 viewportSize = vector_float2(*viewportSizePointer);
-    
 
     // To convert from positions in pixel space to positions in clip-space,
     //  divide the pixel coordinates by half the size of the viewport.
-    out.position = vector_float4(0.0, 0.0, 0.0, 1.0);
-    out.position.xy = pixelSpacePosition / (viewportSize / 2.0);
-
+    out.position = float4(expected[int(vertexID)][0], expected[int(vertexID)][1] ,0.0, 1.0);
+   
     // Pass the input color directly to the rasterizer.
-    out.color = vertices[vertexID].color;
+    out.color = float4(1.0, 0.0, 0.0, 1.0);
 
     return out;
 }
