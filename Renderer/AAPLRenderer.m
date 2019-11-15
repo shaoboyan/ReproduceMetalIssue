@@ -34,31 +34,10 @@ Implementation of a platform independent renderer class, which performs Metal se
     self = [super init];
     if(self)
     {
-        NSError *error = NULL;
+
 
         _device = mtkView.device;
 
-        // Load all the shader files with a .metal file extension in the project.
-        id<MTLLibrary> defaultLibrary = [_device newDefaultLibrary];
-
-        id<MTLFunction> vertexFunction = [defaultLibrary newFunctionWithName:@"vertexShader"];
-        id<MTLFunction> fragmentFunction = [defaultLibrary newFunctionWithName:@"fragmentShader"];
-
-        // Configure a pipeline descriptor that is used to create a pipeline state.
-        MTLRenderPipelineDescriptor *pipelineStateDescriptor = [[MTLRenderPipelineDescriptor alloc] init];
-        pipelineStateDescriptor.label = @"Simple Pipeline";
-        pipelineStateDescriptor.vertexFunction = vertexFunction;
-        pipelineStateDescriptor.fragmentFunction = fragmentFunction;
-        pipelineStateDescriptor.colorAttachments[0].pixelFormat = mtkView.colorPixelFormat;
-
-        _pipelineState = [_device newRenderPipelineStateWithDescriptor:pipelineStateDescriptor
-                                                                 error:&error];
-                
-        // Pipeline State creation could fail if the pipeline descriptor isn't set up properly.
-        //  If the Metal API validation is enabled, you can find out more information about what
-        //  went wrong.  (Metal API validation is enabled by default when a debug build is run
-        //  from Xcode.)
-        NSAssert(_pipelineState, @"Failed to created pipeline state: %@", error);
 
         // Create the command queue
         _commandQueue = [_device newCommandQueue];
@@ -85,6 +64,45 @@ Implementation of a platform independent renderer class, which performs Metal se
         { { -250,  -250 }, { 0, 1, 0, 1 } },
         { {    0,   250 }, { 0, 0, 1, 1 } },
     };
+    
+
+    NSError *error = NULL;
+    // Load all the shader files with a .metal file extension in the project.
+    id<MTLLibrary> defaultLibrary = [_device newDefaultLibrary];
+
+    id<MTLFunction> vertexFunction = [defaultLibrary newFunctionWithName:@"main0"];
+    id<MTLFunction> fragmentFunction = [defaultLibrary newFunctionWithName:@"fragmentShader"];
+    static const int vertex[] =
+    {    127, 0, 0, 0,
+         -128, -2, 0, 0,
+        120, -121, 0, 0
+    };
+    
+    id<MTLBuffer> vertexBuffer = [_device newBufferWithBytes:vertex length:48 options:MTLResourceOptionCPUCacheModeDefault];
+    
+    MTLVertexDescriptor* vertexDesc = [MTLVertexDescriptor new];
+    vertexDesc.attributes[0].bufferIndex = 0;
+    vertexDesc.attributes[0].offset = 0;
+    vertexDesc.attributes[0].format = MTLVertexFormatInt2;
+    vertexDesc.layouts[0].stride = 4 * 4;
+    
+
+    // Configure a pipeline descriptor that is used to create a pipeline state.
+    MTLRenderPipelineDescriptor *pipelineStateDescriptor = [[MTLRenderPipelineDescriptor alloc] init];
+    pipelineStateDescriptor.label = @"Simple Pipeline";
+    pipelineStateDescriptor.vertexFunction = vertexFunction;
+    pipelineStateDescriptor.fragmentFunction = fragmentFunction;
+    pipelineStateDescriptor.colorAttachments[0].pixelFormat = view.colorPixelFormat;
+    pipelineStateDescriptor.vertexDescriptor = vertexDesc;
+
+    _pipelineState = [_device newRenderPipelineStateWithDescriptor:pipelineStateDescriptor
+                                                             error:&error];
+            
+    // Pipeline State creation could fail if the pipeline descriptor isn't set up properly.
+    //  If the Metal API validation is enabled, you can find out more information about what
+    //  went wrong.  (Metal API validation is enabled by default when a debug build is run
+    //  from Xcode.)
+    NSAssert(_pipelineState, @"Failed to created pipeline state: %@", error);
 
     // Create a new command buffer for each render pass to the current drawable.
     id<MTLCommandBuffer> commandBuffer = [_commandQueue commandBuffer];
@@ -106,13 +124,9 @@ Implementation of a platform independent renderer class, which performs Metal se
         [renderEncoder setRenderPipelineState:_pipelineState];
 
         // Pass in the parameter data.
-        [renderEncoder setVertexBytes:triangleVertices
-                               length:sizeof(triangleVertices)
-                              atIndex:AAPLVertexInputIndexVertices];
-        
-        [renderEncoder setVertexBytes:&_viewportSize
-                               length:sizeof(_viewportSize)
-                              atIndex:AAPLVertexInputIndexViewportSize];
+        [renderEncoder setVertexBuffer:vertexBuffer
+                                offset:0
+                               atIndex:0];
 
         // Draw the triangle.
         [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle

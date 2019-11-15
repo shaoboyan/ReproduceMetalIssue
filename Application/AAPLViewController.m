@@ -22,7 +22,14 @@ Implementation of our cross-platform view controller
     // Set the view to use the default device
     _view = (MTKView *)self.view;
     
-    _view.device = MTLCreateSystemDefaultDevice();
+    NSArray<id<MTLDevice>>* devices = MTLCopyAllDevices();
+    for (id<MTLDevice> device in devices) {
+        if (device.isLowPower) {
+            _view.device = device;
+        }
+    }
+    
+    //_view.device = MTLCreateSystemDefaultDevice();
     
     NSAssert(_view.device, @"Metal is not supported on this device");
     
